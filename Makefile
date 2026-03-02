@@ -403,7 +403,7 @@ _VER_PAT := $(word 3,$(_VER3))
 CFLAGS += -DMK_BOOTLOADER_VERSION='((($(_VER_MAJ)<<16)|($(_VER_MIN)<<8)|($(_VER_PAT))))'
 
 # Calculate bootloader version for nrfutil (same as MK_BOOTLOADER_VERSION but as make variable)
-BOOTLOADER_VERSION = $(shell echo $$(( ($(word 1,$(_VER)) << 16) + ($(word 2,$(_VER)) << 8) + $(word 3,$(_VER)) )))
+BOOTLOADER_VERSION = $(shell echo $$(( ($(_VER_MAJ) << 16) + ($(_VER_MIN) << 8) + $(_VER_PAT) )))
 
 # Debug option use RTT for printf
 ifeq ($(DEBUG), 1)
