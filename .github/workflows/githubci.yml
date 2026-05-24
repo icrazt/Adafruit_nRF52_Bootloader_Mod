@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
   push:
-    branches: [ master ]
+    branches: [ master, devc ]
   release:
     types:
       - created
@@ -29,7 +29,7 @@ jobs:
           # Only build SlimeVR-related boards to keep CI time reasonable.
           # Matches any board directory name containing one of:
           #   slimevr, slimenrf, xiao_nrf52840, nice_nano, mochaelec_mochi, foxsnack
-          BOARD_LIST=$(find . -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | grep -E '(slimevr|slimenrf|xiao_nrf52840|nice_nano|mochaelec_mochi|foxsnack)' || true)
+          BOARD_LIST=$(find . -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | grep -E '(slimevr|slimenrf|nice_nano|sk)' || true)
 
           if [ -z "$BOARD_LIST" ]; then
             MATRIX_JSON='[]'
