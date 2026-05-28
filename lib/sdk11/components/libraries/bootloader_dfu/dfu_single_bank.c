@@ -154,9 +154,15 @@ static void dfu_prepare_func_app_erase(uint32_t image_size)
     }
     else
     {
-        flash_nrf5x_erase(DFU_BANK_0_REGION_START, m_image_size);
+        // Erase just the first page to invalidate the reset vector.
+        // This is a safety guard: if the settings write below fails (e.g. power loss),
+        // bootloader_app_is_valid() still rejects the app via the first-2-words check
+        // (0xFFFFFFFF). One page erase (~90ms) won't cause USB disconnect.
+        // Remaining pages are erased individually during flash_nrf5x_write()
+        // with need_erase=true, avoiding the multi-second bulk erase.
+        nrfx_nvmc_page_erase(DFU_BANK_0_REGION_START);
 
-        // invoke complete callback
+        // invoke complete callback to advance state machine
         pstorage_callback_handler(&m_storage_handle_app, PSTORAGE_CLEAR_OP_CODE, NRF_SUCCESS, NULL, 0);
     }
 }
@@ -436,7 +442,7 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
             }
             else
             {
-                flash_nrf5x_write(DFU_BANK_0_REGION_START + m_data_received, p_data, data_length, false);
+                flash_nrf5x_write(DFU_BANK_0_REGION_START + m_data_received, p_data, data_length, true);
                 pstorage_callback_handler(mp_storage_handle_active, PSTORAGE_STORE_OP_CODE, NRF_SUCCESS, (uint8_t *) p_data, data_length);
             }
 
@@ -449,7 +455,7 @@ uint32_t dfu_data_pkt_handle(dfu_update_packet_t * p_packet)
             }
             else
             {
-                if ( !is_ota() ) flash_nrf5x_flush(false);
+                if ( !is_ota() ) flash_nrf5x_flush(true);
 
                 // The entire image has been received. Return NRF_SUCCESS.
                 err_code = NRF_SUCCESS;
