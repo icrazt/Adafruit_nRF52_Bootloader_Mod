@@ -32,6 +32,7 @@
  *------------------------------------------------------------------*/
 #define LEDS_NUMBER          0
 #define LED_NEOPIXEL         PINNUM(1, 4)
+#define LED_NEOPIXEL_INVERTED
 #define NEOPIXEL_POWER_PIN   PINNUM(1, 6)
 #define NEOPIXELS_NUMBER     1
 #define BOARD_RGB_BRIGHTNESS 0x040404

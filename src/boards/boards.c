@@ -377,6 +377,7 @@ static uint32_t secondary_cycle_length;
 #endif
 
 void led_tick(void) {
+#if LEDS_NUMBER > 0
   uint32_t millis = _systick_count;
 
   uint32_t cycle = millis % primary_cycle_length;
@@ -402,6 +403,7 @@ void led_tick(void) {
   #endif
   led_pwm_duty_cycle(LED_SECONDARY, duty_cycle);
   #endif
+#endif
 }
 
 static uint32_t rgb_color;
@@ -478,8 +480,19 @@ void led_state(uint32_t state) {
 #ifdef LED_NEOPIXEL
 
 // WS2812B (rev B) timing is 0.4 and 0.8 us
-#define MAGIC_T0H               6UL | (0x8000) // 0.375us
-#define MAGIC_T1H              13UL | (0x8000) // 0.8125us
+#ifdef LED_NEOPIXEL_INVERTED
+#define NEOPIXEL_PWM_POLARITY 0
+#define NEOPIXEL_PIN_IDLE_STATE 1
+#else
+#define NEOPIXEL_PWM_POLARITY 0x8000
+#define NEOPIXEL_PIN_IDLE_STATE 0
+#endif
+
+#define NEOPIXEL_PWM_VALUE(high_ticks) ((high_ticks) | NEOPIXEL_PWM_POLARITY)
+
+#define MAGIC_T0H               NEOPIXEL_PWM_VALUE(6UL)  // 0.375us
+#define MAGIC_T1H               NEOPIXEL_PWM_VALUE(13UL) // 0.8125us
+#define MAGIC_RESET             NEOPIXEL_PWM_VALUE(0UL)
 #define CTOPVAL                20UL            // 1.25us
 
 #define BYTE_PER_PIXEL  3
@@ -523,6 +536,8 @@ void neopixel_init(void) {
   //    pwm->INTEN |= (PWM_INTEN_SEQEND0_Enabled<<PWM_INTEN_SEQEND0_Pos);
 
   // PSEL must be configured before enabling PWM
+  nrf_gpio_pin_write(LED_NEOPIXEL, NEOPIXEL_PIN_IDLE_STATE);
+  nrf_gpio_cfg_output(LED_NEOPIXEL);
   nrf_pwm_pins_set(pwm, (uint32_t[]) {LED_NEOPIXEL, 0xFFFFFFFFUL, 0xFFFFFFFFUL, 0xFFFFFFFFUL});
 
   // Enable the PWM
@@ -557,8 +572,8 @@ void neopixel_write(uint8_t* pixels) {
   }
 
   // Zero padding to indicate the end of sequence
-  pixels_pattern[pos++] = 0 | (0x8000);    // Seq end
-  pixels_pattern[pos++] = 0 | (0x8000);    // Seq end
+  pixels_pattern[pos++] = MAGIC_RESET;    // Seq end
+  pixels_pattern[pos++] = MAGIC_RESET;    // Seq end
 
   NRF_PWM_Type* pwm = NRF_PWM1;
 
