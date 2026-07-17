@@ -42,8 +42,9 @@
 /*------------------------------------------------------------------*/
 /* BUTTON
  *------------------------------------------------------------------*/
-#define BUTTON_DFU  PINNUM(1, 10) // UBTN1
-#define BUTTON_PULL NRF_GPIO_PIN_PULLUP
+#define BUTTON_DFU     PINNUM(0, 18) // RESET, only pad
+#define BUTTON_DFU_OTA PINNUM(1, 10) // UBTN1
+#define BUTTON_PULL    NRF_GPIO_PIN_PULLUP
 
 /*------------------------------------------------------------------*/
 /* Power safety pins
